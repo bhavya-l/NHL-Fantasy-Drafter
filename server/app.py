@@ -37,7 +37,6 @@ def search_players():
         WHERE p.name ILIKE %s
         AND p.position != 'G'
         ORDER BY p.name
-        LIMIT 50
     """, (f'%{query}%',))
     players = fetchall_dict(cur)
     cur.close()
@@ -52,13 +51,12 @@ def search_goalies():
     cur = conn.cursor()
     cur.execute("""
         SELECT p.playerId, p.name, p.position, p.teamName,
-               g.goals_against, g.games_played, g.xGoals, g.save_pct
+               g.goals_against, g.games_played, g.xgoals, g.save_pct
         FROM Player p
         LEFT JOIN GoalieStats g ON p.playerId = g.playerId AND g.situation = 'all'
         WHERE p.name ILIKE %s
         AND p.position = 'G'
         ORDER BY p.name
-        LIMIT 50
     """, (f'%{query}%',))
     goalies = fetchall_dict(cur)
     cur.close()
@@ -81,7 +79,7 @@ def get_player(player_id):
     if position == 'G':
         cur.execute("""
             SELECT p.playerId, p.name, p.position, p.teamName,
-                   g.situation, g.goals_against, g.games_played, g.xGoals, g.save_pct
+                   g.situation, g.goals_against, g.games_played, g.xgoals, g.save_pct
             FROM Player p
             JOIN GoalieStats g ON p.playerId = g.playerId
             WHERE p.playerId = %s
@@ -250,7 +248,7 @@ def get_dream_team_roster(dream_team_id):
 
     cur.execute("""
         SELECT p.playerId, p.name, p.position, p.teamName,
-               g.goals_against, g.games_played, g.xGoals, g.save_pct
+               g.goals_against, g.games_played, g.xgoals, g.save_pct
         FROM Player p
         JOIN GoalieStats g ON p.playerId = g.playerId
         WHERE p.dreamTeamId = %s
@@ -274,7 +272,7 @@ def get_projected_stats(dream_team_id):
             SUM(s.goals)   AS totalGoals,
             SUM(s.assists) AS totalAssists,
             SUM(s.points)  AS totalPoints,
-            MAX(s.games_played)  AS totalGamesPlayed
+            SUM(s.games_played)  AS totalGamesPlayed
         FROM Player p
         JOIN SkaterStats s ON p.playerId = s.playerId
         WHERE p.dreamTeamId = %s

@@ -19,14 +19,6 @@ def create_database():
     )
     conn.autocommit = True
     cur = conn.cursor()
-
-    cur.execute("""
-            SELECT pg_terminate_backend(pid)
-            FROM pg_stat_activity
-            WHERE datname = %s
-            AND pid <> pg_backend_pid();
-        """, (DB_NAME,))
-    
     cur.execute("DROP DATABASE IF EXISTS nhl_dream_team")
     cur.execute(f"CREATE DATABASE {DB_NAME}")
     cur.close()
