@@ -132,30 +132,6 @@ def get_team_players(team_name):
     conn.close()
     return jsonify(players)
 
-# Get aggregated stats for a real NHL team
-@app.route('/teams/<string:team_name>/stats', methods=['GET'])
-def get_team_stats(team_name):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT
-            t.teamName,
-            SUM(s.goals)   AS totalGoals,
-            SUM(s.assists) AS totalAssists,
-            SUM(s.points)  AS totalPoints,
-            MAX(s.games_played)  AS games_played
-        FROM Team t
-        JOIN Player p ON t.teamName = p.teamName
-        JOIN SkaterStats s ON p.playerId = s.playerId
-        WHERE t.teamName = %s
-        AND s.situation = 'all'
-        GROUP BY t.teamName
-    """, (team_name,))
-    stats = fetchall_dict(cur)
-    cur.close()
-    conn.close()
-    return jsonify(stats[0] if stats else {})
-
 # Init a fresh dream team on page load
 @app.route('/dreamteam/init', methods=['POST'])
 def init_dream_team():
