@@ -26,7 +26,7 @@ def create_database():
 
 def create_tables(cur):
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS Division (
+    CREATE TABLE IF NOT EXISTS Divisions (
         division TEXT PRIMARY KEY,
         conference TEXT
     );
@@ -36,7 +36,7 @@ def create_tables(cur):
     CREATE TABLE IF NOT EXISTS Team (
         teamName TEXT PRIMARY KEY,
         city TEXT,
-        division TEXT REFERENCES Division(division)
+        division TEXT REFERENCES Divisions(division)
     );
     """)
 
@@ -107,7 +107,7 @@ teams = skaters[['team']].drop_duplicates()
 
 for division, conference in divisions.items():
     cur.execute("""
-        INSERT INTO Division (division, conference)
+        INSERT INTO Divisions (division, conference)
         VALUES (%s, %s)
         ON CONFLICT DO NOTHING
     """, (division, conference))
