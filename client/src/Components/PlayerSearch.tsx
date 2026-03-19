@@ -1,5 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
+import { useFilteredData } from "../Hooks/useFilteredData"
 
 interface Player {
     playerid: number
@@ -21,6 +22,12 @@ export default function PlayerSearch({ dreamTeamId, onPlayerAdded }: PlayerSearc
     const [open, setOpen] = useState(false)
     const [query, setQuery] = useState("")
     const [players, setPlayers] = useState<Player[]>([])
+    const {
+        filters,
+        setFilter,
+        clearFilters,
+        filteredData
+    } = useFilteredData(players)
 
     const search = async () => {
         const res = await axios.get(`http://127.0.0.1:5000/players/search?q=${query}`)
@@ -35,7 +42,7 @@ export default function PlayerSearch({ dreamTeamId, onPlayerAdded }: PlayerSearc
 
     return (
         <>
-            <button onClick={() => {setOpen(true); setQuery(""); search()}}>Search for Player</button>
+            <button onClick={() => { setOpen(true); setQuery(""); search(); clearFilters(); }}>Search for Player</button>
 
             {open && (
                 <div style={{
@@ -77,9 +84,60 @@ export default function PlayerSearch({ dreamTeamId, onPlayerAdded }: PlayerSearc
                                         <th>Games Played</th>
                                         <th></th>
                                     </tr>
+                                    <tr>
+                                        <th>
+                                            <input
+                                                value={filters.name || ""}
+                                                onChange={e => setFilter("name", e.target.value)}
+                                                placeholder="Filter..."
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.position || ""}
+                                                onChange={e => setFilter("position", e.target.value)}
+                                                placeholder="Filter..."
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.teamname || ""}
+                                                onChange={e => setFilter("teamname", e.target.value)}
+                                                placeholder="Filter..."
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.goals || ""}
+                                                onChange={e => setFilter("goals", e.target.value)}
+                                                placeholder="E.g. >10"
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.assists || ""}
+                                                onChange={e => setFilter("assists", e.target.value)}
+                                                placeholder="E.g. <10"
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.points || ""}
+                                                onChange={e => setFilter("points", e.target.value)}
+                                                placeholder="E.g. >=10"
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.games_played || ""}
+                                                onChange={e => setFilter("games_played", e.target.value)}
+                                                placeholder="E.g. <=10"
+                                            />
+                                        </th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                    {players.map(p => (
+                                    {filteredData.map(p => (
                                         <tr key={p.playerid}>
                                             <td>{p.name}</td>
                                             <td>{p.position}</td>

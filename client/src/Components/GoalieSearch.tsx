@@ -1,5 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
+import { useFilteredData } from "../Hooks/useFilteredData"
 
 interface Goalie {
     playerid: number
@@ -21,6 +22,12 @@ export default function GoalieSearch({ dreamTeamId, onGoalieAdded }: GoalieSearc
     const [open, setOpen] = useState(false)
     const [query, setQuery] = useState("")
     const [goalies, setGoalies] = useState<Goalie[]>([])
+    const {
+        filters,
+        setFilter,
+        clearFilters,
+        filteredData
+    } = useFilteredData(goalies)
 
     const search = async () => {
         const res = await axios.get(`http://127.0.0.1:5000/goalies/search?q=${query}`)
@@ -35,7 +42,7 @@ export default function GoalieSearch({ dreamTeamId, onGoalieAdded }: GoalieSearc
 
     return (
         <>
-            <button onClick={() => {setOpen(true); setQuery(""); search()}}>Search for Goalie</button>
+            <button onClick={() => {setOpen(true); setQuery(""); search(); clearFilters()}}>Search for Goalie</button>
 
             {open && (
                 <div style={{
@@ -76,9 +83,53 @@ export default function GoalieSearch({ dreamTeamId, onGoalieAdded }: GoalieSearc
                                         <th>Games Played</th>
                                         <th></th>
                                     </tr>
+                                    <tr>
+                                        <th>
+                                            <input
+                                                value={filters.name || ""}
+                                                onChange={e => setFilter("name", e.target.value)}
+                                                placeholder="Filter..."
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.teamname || ""}
+                                                onChange={e => setFilter("teamname", e.target.value)}
+                                                placeholder="Filter..."
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.goals_against || ""}
+                                                onChange={e => setFilter("goals_against", e.target.value)}
+                                                placeholder="E.g. 50"
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.xgoals || ""}
+                                                onChange={e => setFilter("xgoals", e.target.value)}
+                                                placeholder="E.g. >10"
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.save_pct || ""}
+                                                onChange={e => setFilter("save_pct", e.target.value)}
+                                                placeholder="E.g. <10"
+                                            />
+                                        </th>
+                                        <th>
+                                            <input
+                                                value={filters.games_played || ""}
+                                                onChange={e => setFilter("games_played", e.target.value)}
+                                                placeholder="E.g. >=10"
+                                            />
+                                        </th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                    {goalies.map(g => (
+                                    {filteredData.map(g => (
                                         <tr key={g.playerid}>
                                             <td>{g.name}</td>
                                             <td>{g.teamname}</td>
