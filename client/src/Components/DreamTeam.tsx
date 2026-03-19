@@ -4,6 +4,11 @@ import PlayerSearch from "./PlayerSearch"
 import GoalieSearch from "./GoalieSearch"
 import ProjectedStats from "./ProjectedStats"
 
+type SortConfig = {
+    key: string
+    direction: "asc" | "desc"
+} | null
+
 interface Player {
     playerid: number
     name: string
@@ -51,6 +56,9 @@ export default function DreamTeamBuilder({ session }: DreamTeamBuilderProps) {
     const [defensemen, setDefensemen] = useState<Player[]>([])
     const [goalies, setGoalies] = useState<Goalie[]>([])
     const [refreshKey, setRefreshKey] = useState(0)
+    const [forwardSort, setForwardSort] = useState<SortConfig>(null)
+    const [defenseSort, setDefenseSort] = useState<SortConfig>(null)
+    const [goalieSort, setGoalieSort] = useState<SortConfig>(null)
 
     useEffect(() => {
         fetchRoster()
@@ -64,6 +72,45 @@ export default function DreamTeamBuilder({ session }: DreamTeamBuilderProps) {
         setForwards(skaters.filter(p => p.position !== "D"))
         setDefensemen(skaters.filter(p => p.position === "D"))
         setGoalies(goalieData)
+    }
+
+    function getArrow(sort: SortConfig, key: string) {
+        if (!sort || sort.key !== key) return ""
+        return sort.direction === "asc" ? " ↑" : " ↓"
+    }
+
+    function sortData<T>(data: T[], sortConfig: SortConfig): T[] {
+        if (!sortConfig) return data
+
+        const { key, direction } = sortConfig
+
+        return [...data].sort((a: any, b: any) => {
+            const aVal = a[key]
+            const bVal = b[key]
+
+            if (typeof aVal === "string") {
+                return direction === "asc"
+                    ? aVal.localeCompare(bVal)
+                    : bVal.localeCompare(aVal)
+            }
+
+            return direction === "asc" ? aVal - bVal : bVal - aVal
+        })
+    }
+
+    function handleSort(
+        key: string,
+        setSortConfig: React.Dispatch<React.SetStateAction<SortConfig>>
+    ) {
+        setSortConfig(prev => {
+            if (prev?.key === key) {
+                return {
+                    key,
+                    direction: prev.direction === "asc" ? "desc" : "asc"
+                }
+            }
+            return { key, direction: "asc" }
+        })
     }
 
     const handleRenameSave = async () => {
@@ -96,7 +143,7 @@ export default function DreamTeamBuilder({ session }: DreamTeamBuilderProps) {
             <PlayerSearch dreamTeamId={session.dreamTeamId} onPlayerAdded={fetchRoster} />
             <GoalieSearch dreamTeamId={session.dreamTeamId} onGoalieAdded={fetchRoster} />
             <ProjectedStats dreamTeamId={session.dreamTeamId} refreshKey={refreshKey} />
-            
+
             {/* Forwards */}
             <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
                 <div>
@@ -107,17 +154,17 @@ export default function DreamTeamBuilder({ session }: DreamTeamBuilderProps) {
                     <table border={1} cellPadding={6}>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Position</th>
-                                <th>Team</th>
-                                <th>Goals</th>
-                                <th>Assists</th>
-                                <th>Points</th>
-                                <th>GP</th>
+                                <th onClick={() => handleSort("name", setForwardSort)}>Name {getArrow(forwardSort, "name")}</th>
+                                <th onClick={() => handleSort("position", setForwardSort)}>Position {getArrow(forwardSort, "position")}</th>
+                                <th onClick={() => handleSort("teamname", setForwardSort)}>Team {getArrow(forwardSort, "teamname")}</th>
+                                <th onClick={() => handleSort("goals", setForwardSort)}>Goals {getArrow(forwardSort, "goals")}</th>
+                                <th onClick={() => handleSort("assists", setForwardSort)}>Assists {getArrow(forwardSort, "assists")}</th>
+                                <th onClick={() => handleSort("points", setForwardSort)}>Points {getArrow(forwardSort, "points")}</th>
+                                <th onClick={() => handleSort("games_played", setForwardSort)}>Games Played {getArrow(forwardSort, "games_played")}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {forwards.map(p => (
+                            {sortData(forwards, forwardSort).map(p => (
                                 <tr key={p.playerid}>
                                     <td>{p.name}</td>
                                     <td>{p.position}</td>
@@ -141,16 +188,16 @@ export default function DreamTeamBuilder({ session }: DreamTeamBuilderProps) {
                     <table border={1} cellPadding={6}>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Team</th>
-                                <th>Goals</th>
-                                <th>Assists</th>
-                                <th>Points</th>
-                                <th>GP</th>
+                                <th onClick={() => handleSort("name", setDefenseSort)}>Name {getArrow(defenseSort, "name")}</th>
+                                <th onClick={() => handleSort("teamname", setDefenseSort)}>Team {getArrow(defenseSort, "teamname")}</th>
+                                <th onClick={() => handleSort("goals", setDefenseSort)}>Goals {getArrow(defenseSort, "goals")}</th>
+                                <th onClick={() => handleSort("assists", setDefenseSort)}>Assists {getArrow(defenseSort, "assists")}</th>
+                                <th onClick={() => handleSort("points", setDefenseSort)}>Points {getArrow(defenseSort, "points")}</th>
+                                <th onClick={() => handleSort("games_played", setDefenseSort)}>Games Played {getArrow(defenseSort, "games_played")}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {defensemen.map(p => (
+                            {sortData(defensemen, defenseSort).map(p => (
                                 <tr key={p.playerid}>
                                     <td>{p.name}</td>
                                     <td>{p.teamname}</td>
@@ -173,16 +220,16 @@ export default function DreamTeamBuilder({ session }: DreamTeamBuilderProps) {
             <table border={1} cellPadding={6}>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Team</th>
-                        <th>GP</th>
-                        <th>Goals Against</th>
-                        <th>xGoals</th>
-                        <th>Save %</th>
+                        <th onClick={() => handleSort("name", setGoalieSort)}>Name {getArrow(goalieSort, "name")}</th>
+                        <th onClick={() => handleSort("teamname", setGoalieSort)}>Team {getArrow(goalieSort, "teamname")}</th>
+                        <th onClick={() => handleSort("games_played", setGoalieSort)}>Games Played {getArrow(goalieSort, "games_played")}</th>
+                        <th onClick={() => handleSort("goals_against", setGoalieSort)}>Goals Against {getArrow(goalieSort, "goals_against")}</th>
+                        <th onClick={() => handleSort("xgoals", setGoalieSort)}>Expected Goals Against {getArrow(goalieSort, "xgoals")}</th>
+                        <th onClick={() => handleSort("save_pct", setGoalieSort)}>Save % {getArrow(goalieSort, "save_pct")}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {goalies.map(g => (
+                    {sortData(goalies, goalieSort).map(g => (
                         <tr key={g.playerid}>
                             <td>{g.name}</td>
                             <td>{g.teamname}</td>
