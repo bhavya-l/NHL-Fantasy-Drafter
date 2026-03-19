@@ -106,7 +106,7 @@ def get_teams():
     cur.execute("""
         SELECT t.teamName, t.city, t.division, d.conference
         FROM Team t
-        JOIN Division d ON t.division = d.division
+        JOIN Divisions d ON t.division = d.division
         ORDER BY t.teamName
     """)
     teams = fetchall_dict(cur)
